@@ -13,7 +13,7 @@ class LCNN(nn.Module):
         super(LCNN, self).__init__()
 
         self.features = nn.Sequential(
-            mfm(1, 8, 5, 1, 2),
+            mfm(1, 8, 5, 1, 2, type=2),
             
             nn.BatchNorm2d(8), #
             #nn.Dropout2d(p=0.35), #
@@ -110,7 +110,8 @@ class mfm(nn.Module):
         self.out_channels = out_channels
         if type == 1:
             self.filter = nn_ard.Conv2dARD(in_channels, 2*out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
-             #self.filter = nn.Conv2d(in_channels, 2*out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
+        elif type == 2:
+            self.filter = nn.Conv2d(in_channels, 2*out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
         else:
             self.filter = nn.Linear(in_channels, 2*out_channels)
 

@@ -38,9 +38,6 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #device = torch.device('cpu')
 
 
-writer = SummaryWriter('logs')
-
-
 # global step counter
 class GlobalStep:
     def __init__(self):
@@ -168,14 +165,14 @@ def run_session(data, args):
     #tr_dataloader, val_dataloader, eval_dataloader = data[0], data[1], data[2]
     tr_dataloader, eval_dataloader = data[0], data[1]
 
-    g         = GlobalStep() # initialize global step
+    g         = GlobalStep() # initialize global step
     epoch     = args.ep
     cuda      = torch.cuda.is_available()
     curr_time = get_current_time()
     model     = init_model(args.model, cuda, typ=1)
     loss      = init_loss('cross_entropy', cuda)
-    #loss      = loss_EDL(torch.digamma) # custom loss algorithm
-    #loss      = mse_loss # custom loss
+    #loss      = loss_EDL(torch.digamma) # custom loss algorithm
+    #loss      = mse_loss # custom loss
     # if logits output is 2d use cross_entropy loss function
     optimizer = init_optimizer('adam', model, lr=args.lr)
     
@@ -189,7 +186,7 @@ def run_session(data, args):
                 model=model,
                 loss_func=loss,
                 optimizer=optimizer,
-                g=g, # global step
+                g=g, # global step
                 tr_dataloader=tr_dataloader,
                 cuda=cuda,
                 e=e
@@ -199,7 +196,7 @@ def run_session(data, args):
                 model=model,
                 loss_func=loss,
                 optimizer=optimizer,
-                g=g, # globbal step
+                g=g, # globbal step
                 cuda=cuda,
                 data=data,
                 e=e,
@@ -215,62 +212,6 @@ def test(model, loss_func, optimizer, g, cuda, e, data, args):
     test_(model, loss_func, optimizer, g, data[0], cuda, e, mode='train',args=args)
     test_(model, loss_func, optimizer, g, data[1], cuda, e, mode='eval', args=args)
 
-def train(model, loss_func, optimizer, g, data, cuda, e):
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=10, 
-    min_lr=1e-8, factor=0.001, verbose=True, eps=1e-8)
-    
-    model.train()
-
-    x = data.tr['x']
-    y = data.tr['y']
-    for x_, y_ in zip(x, y):
-        if cuda:
-            tensor_x = Variable(torch.FloatTensor(x_), requires_grad=True).to(device) 
-            tensor_y = Variable(torch.LongTensor(y_), requires_grad=False).to(device)
-        #batch_size = tensor_x.size(0)
-        
-        # compute model
-        logits, _, _, _, _, alpha = model(tensor_x)
-        
-        ##### EDL Loss Function #####
-
-        #annealing_step = 10
-        #global_step = e
-        #one_hot_label = one_hot_encoding(tensor_y)
-        #loss_batch = loss_func(one_hot_label.to(device), alpha, global_step, annealing_step)
-        #loss_batch = torch.mean(loss_batch, dim=0)
-        #batch_loss = loss_batch
-
-
-        ##### Cross Entropy Loss Function #####
-        
-        #tensor_y_cast = tensor_y.type_as(logits).reshape(-1,1) # for binary cross entropy
-        loss_batch = loss_func(logits, tensor_y.view(-1)) # cross entropy
-        # compute accuracy 
-        #_, pred_ = logits.max(dim=1)
-        #loss += (loss_batch.item() * batch_size)s
-        #corr += (pred_.cpu() == tensor_y.view(-1).cpu().data).sum(dim=0).item()
-        #total += batch_size
-        
-        #List_grad.append(model.logits.fully_connected.weight.grad.cpu().numpy())
-        #List_weights.append(model.logits.fully_connected.weight.detach().cpu().numpy())
-
-        optimizer.zero_grad()
-        loss_batch.backward()
-        optimizer.step() # implement L1 regularizer
-
-        # check if gradient generated
-        #model.logits.weight.grad
-        
-        del loss_batch
-        del logits
-    
-    #scheduler.step(metrics=batch_loss, epoch=e)
-
-    #acc = corr / total
-    #loss /= total    
-    #print('epoch: {}, Train loss:{}, Train acc:{}'
-    #.format(e, loss, acc))
 
 def train2(model, loss_func, optimizer, g, tr_dataloader, cuda, e):
     scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=10, 
@@ -286,7 +227,7 @@ def train2(model, loss_func, optimizer, g, tr_dataloader, cuda, e):
             tensor_y = Variable(torch.LongTensor(out_data), requires_grad=False).to(device)
         #batch_size = tensor_x.size(0)
         
-        # compute model
+        # compute model
         logits, _, _, _, _, alpha = model(tensor_x)
         
         ##### EDL Loss Function #####
@@ -301,14 +242,15 @@ def train2(model, loss_func, optimizer, g, tr_dataloader, cuda, e):
 
         ##### Cross Entropy Loss Function #####
         
-        #tensor_y_cast = tensor_y.type_as(logits).reshape(-1,1) # for binary cross entropy
+        #tensor_y_cast = tensor_y.type_as(logits).reshape(-1,1) # for binary cross entropy
          #loss_batch = loss_func(logits, tensor_y.view(-1)) # cross entropy
         
+        ##### ELBOLoss Function #####
         loss_batch = nn_ard.ELBOLoss(model, F.cross_entropy)
         loss_batch = loss_batch.forward(logits, tensor_y.view(-1))
 
         
-        # compute accuracy 
+        # compute accuracy 
         #_, pred_ = logits.max(dim=1)
         #loss += (loss_batch.item() * batch_size)s
         #corr += (pred_.cpu() == tensor_y.view(-1).cpu().data).sum(dim=0).item()
@@ -321,7 +263,7 @@ def train2(model, loss_func, optimizer, g, tr_dataloader, cuda, e):
         loss_batch.backward()
         optimizer.step() # implement L1 regularizer
 
-        # check if gradient generated
+        # check if gradient generated
         #model.logits.weight.grad
         
         del loss_batch
@@ -348,23 +290,8 @@ plot_eer=False, save_scores=True):
     true_score_path = 'scores/{}_labels_{}'.format(mode, e)
     uncertainty_score_path = 'scores/{}_uncertainty_{}'.format(mode, e)
 
-    #logits_score_path_first = 'scores/{}_logit_scores_ep1'.format(mode)
-    #softmax_logits_score_path_first = 'scores/{}_softmax_scores_ep1'.format(mode)
-    #true_score_path_first = 'scores/{}_labels_ep1'.format(mode)
-
     model.eval()
 
-    # if mode is 'dev':
-    #     x = data.dev['x']
-    #     y = data.dev['y']
-    # if mode is 'eval':
-    #     x = data.eval['x']
-    #     y = data.eval['y']
-    # if mode is 'train':
-    #     x = data.tr['x']
-    #     y = data.tr['y']
-
-    #for i, (x_, y_) in enumerate(zip(x, y)):
     for i_batch, sample_batched in enumerate(data):
         sample_id, inp_data, out_data, seq_len = sample_batched
 
@@ -376,7 +303,7 @@ plot_eer=False, save_scores=True):
         # model output        
         logits, logsoftmax, softmax, uncertanity, prob, alpha = model(tensor_x)
 
-        # calculate scores
+        # calculate scores
         logits_np     = logits.data.cpu().numpy()
         logsoftmax_np = logsoftmax.data.cpu().numpy() 
         prob_np       = prob.data.cpu().numpy()
@@ -392,7 +319,6 @@ plot_eer=False, save_scores=True):
         L_true_labels.append(true_labels)
 
         ##### EDL Loss Function #####
-        
         # #annealing_step  = 10*batch_size
         # #global_step = g.get_global_step()
 
@@ -403,21 +329,17 @@ plot_eer=False, save_scores=True):
         #loss_batch = torch.mean(loss_batch, dim=0)
         #loss += (loss_batch.item() * batch_size)
 
-        ##### Cross Entropy Loss Function #####
-        
+        ##### Cross Entropy Loss Function #####
         #tensor_y_cast = tensor_y.type_as(logits).reshape(-1,1) # for binary cross entropy 
         #loss_batch = loss_func(logits, tensor_y.view(-1))
+
+        ##### ELBOLoss Function #####
         loss_batch = nn_ard.ELBOLoss(model, F.cross_entropy)
         loss_batch = loss_batch.forward(logits, tensor_y.view(-1))
-        
-        # compute accuracy 
-        # 1D output
-        """
-        pred_ = (sigmoid_logits >= 0.5).float()
-        acc += torch.sum(tensor_y.view(-1) == pred_.view(-1))
-        """
 
-        # 2D output
+        loss += loss_batch.item()
+
+        # 2D output
         _, pred_ = logits.max(dim=1)
         acc += (pred_.cpu() == tensor_y.view(-1).cpu().data).sum(dim=0)
 
@@ -446,15 +368,6 @@ plot_eer=False, save_scores=True):
     acc_    = acc.item() / total
     loss   /= total
 
-    save_logs = False
-    if save_logs:
-        writer.add_scalar('{} acc'.format(mode), acc, e)
-        writer.add_scalar('{} loss'.format(mode), loss, e)
-        writer.add_scalar('{} Uncertanity'.format(mode), uncertanity_scalar, e)
-        writer.add_scalar('{} True Negatives'.format(mode), true_negatives, e)
-        writer.add_scalar('{} True Positives'.format(mode), true_positives, e)
-        writer.add_scalar('{} False Negatives'.format(mode), false_negatives, e)
-        writer.add_scalar('{} False Positives'.format(mode), false_positives, e)
 
     if save_scores:
         np.save(logits_score_path, L_logits)
@@ -508,11 +421,11 @@ if __name__ == '__main__':
     parser.add_argument('--pd', '--padding', default=64000, type=int, help='padding implementation')
     parser.add_argument('--normalize', default=True, type=bool, help='normalization process ativated')
     
-    # generate modes -> NOTE: train mode or test mode
+    # generate modes -> NOTE: train mode or test mode
     parser.add_argument('--trModel', type=bool, default=True, help='train datasset mode')
     parser.add_argument('--tsModel', type=bool, default=True, help='test dataset mode')
 
-    # dataset paths, train can be concatenated with development  NOTE: ['train','dev'] 
+    # dataset paths, train can be concatenated with development  NOTE: ['train','dev'] 
     parser.add_argument('--tr_x_p', default='train', help='train data path')
     parser.add_argument('--tr_y_p', default='train.trn', help='train data path')
 
@@ -554,16 +467,16 @@ if __name__ == '__main__':
     # args.eval_x_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/cqcc_data/eval'
     # args.eval_y_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/cqcc_data/eval.trl.txt'
 
-    data_root = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/'
+    data_root = '/home/cagil/Documents/cagil_suslu/Speech_Project/Automated-Speech-Verification_pytorch/cqcc_npy_norm/'
 
-    args.tr_x_p = data_root + 'cqcc_data_norm/train'
-    args.tr_y_p = data_root + 'cqcc_data_norm/train.trn.txt'
+    args.tr_x_p = data_root + '/train'
+    args.tr_y_p = data_root + '/train.trn.txt'
 
-    args.dev_x_p = data_root + 'cqcc_data_norm/dev'
-    args.dev_y_p = data_root + 'cqcc_data_norm/dev.trl.txt'
+    args.dev_x_p = data_root + '/dev'
+    args.dev_y_p = data_root + '/dev.trl.txt'
 
-    args.eval_x_p = data_root + 'cqcc_data_norm/dev'
-    args.eval_y_p = data_root + 'cqcc_data_norm/dev.trl.txt'
+    args.eval_x_p = data_root + '/dev'
+    args.eval_y_p = data_root + '/dev.trl.txt'
 
     batch_size = args.bs
     bin_size = 1  
