@@ -182,8 +182,6 @@ def get_ard_reg(module):
     if isinstance(module, LinearARD) or isinstance(module, Conv2dARD):
         return module.get_reg()
     elif hasattr(module, 'children'):
-        for submodule in module.children():
-            s = get_ard_reg(submodule)
         return sum([get_ard_reg(submodule) for submodule in module.children()])
     return 0
  

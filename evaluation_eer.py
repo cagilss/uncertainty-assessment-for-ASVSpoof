@@ -90,7 +90,7 @@ class Evaluation_EER:
         #folder = 'scores_lcnn_dynamic_pad/scores_tr_dev_norm_edl' # 43
 
         #folder = 'scores_lcnn_dynamic_pad/lcnn_edl_and_cr_en_softmax_and_probs/scores_cr_en' # 47
-        folder = 'scores' # 43
+        folder = 'scores_0776eer_103' # 43
 
         # ResNet model scores 
         #folder = 'S8_ce_resnet_1101_60'
@@ -510,7 +510,7 @@ if __name__ == '__main__':
     #compute_scores.eer() 
     # compute_scores.cumulative_distribution_function()
     #compute_scores.plot_roc_for_all()
-    compute_scores.find_best_eer2(epoch=115)
+    compute_scores.find_best_eer2(epoch=20)
 
     #compute_scores.plot_roc_curve()
     #compute_scores.plot_pdfs()
