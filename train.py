@@ -408,8 +408,8 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Training arguments')
     parser.add_argument('--bs', '--batch_size', default=32, type=int, help='batch_size')
-    parser.add_argument('--lr', '--learning_rate', default=0.001, type=float, help='learning rate')
-    parser.add_argument('--ep', '--epoch', default=50, help='num epoches')
+    parser.add_argument('--lr', '--learning_rate', default=0.0004, type=float, help='learning rate') # 0.001
+    parser.add_argument('--ep', '--epoch', default=110, help='num epoches')
     parser.add_argument('--model', '--train_model', default='LCNN')
     parser.add_argument('--ft', '--feature_extraction', default='MFCC', type=str, help='fetaure extraction')
     parser.add_argument('--ev', '--eval', default=True, type=bool, help='evaluation dataset')

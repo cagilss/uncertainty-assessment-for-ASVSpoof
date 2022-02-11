@@ -510,7 +510,7 @@ if __name__ == '__main__':
     #compute_scores.eer() 
     # compute_scores.cumulative_distribution_function()
     #compute_scores.plot_roc_for_all()
-    compute_scores.find_best_eer2(epoch=45)
+    compute_scores.find_best_eer2(epoch=115)
 
     #compute_scores.plot_roc_curve()
     #compute_scores.plot_pdfs()

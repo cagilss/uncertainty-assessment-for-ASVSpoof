@@ -113,7 +113,7 @@ class mfm(nn.Module):
         elif type == 2:
             self.filter = nn.Conv2d(in_channels, 2*out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
         else:
-            self.filter = nn.Linear(in_channels, 2*out_channels)
+            self.filter = nn_ard.LinearARD(in_channels, 2*out_channels)
 
     def forward(self, x):
         x = self.filter(x)

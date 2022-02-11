@@ -96,7 +96,6 @@ class Conv2dARD(nn.Conv2d):
         self.ard_init = ard_init
 
         self.log_sigma2 = Parameter(ard_init * torch.ones_like(self.weight))
-        
         #eps = 0.1
         #self.log_sigma2 = Parameter(2 * torch.log(torch.abs(self.weight) + eps).clone().detach()+self.ard_init*torch.ones_like(self.weight))
 
