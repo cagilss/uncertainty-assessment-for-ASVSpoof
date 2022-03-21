@@ -96,7 +96,7 @@ class LCNN(nn.Module):
 
     def init_weight(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn_ard.Conv2dARD):
                 init.xavier_uniform(m.weight.data)
                 # m.bias.data.zero_()
             elif isinstance(m, nn.Linear):

@@ -210,6 +210,9 @@ def test(model, loss_func, optimizer, g, cuda, e, data, args):
     # test_(model, loss_func, optimizer, g, data[2], cuda, e, mode='eval', args=args)
 
     test_(model, loss_func, optimizer, g, data[0], cuda, e, mode='train',args=args)
+    
+    #test_(model, loss_func, optimizer, g, data[2], cuda, e, mode='dev', args=args)
+
     test_(model, loss_func, optimizer, g, data[1], cuda, e, mode='eval', args=args)
 
 
@@ -408,9 +411,9 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Training arguments')
     parser.add_argument('--bs', '--batch_size', default=32, type=int, help='batch_size')
-    parser.add_argument('--lr', '--learning_rate', default=0.0004, type=float, help='learning rate') # 0.001
-    parser.add_argument('--ep', '--epoch', default=110, help='num epoches')
-    parser.add_argument('--model', '--train_model', default='LCNN')
+    parser.add_argument('--lr', '--learning_rate', default=0.001, type=float, help='learning rate') # 0.001
+    parser.add_argument('--ep', '--epoch', default=100, help='num epoches')
+    parser.add_argument('--model', '--train_model', default='LSTM')
     parser.add_argument('--ft', '--feature_extraction', default='MFCC', type=str, help='fetaure extraction')
     parser.add_argument('--ev', '--eval', default=True, type=bool, help='evaluation dataset')
     parser.add_argument('--tr', '--train', default=True, type=bool, help='train dataset')
@@ -435,7 +438,6 @@ if __name__ == '__main__':
     parser.add_argument('--eval_x_p', default='eval', help='train data path')
     parser.add_argument('--eval_y_p', default='eval.trl', help='train data path')
 
-
     args = parser.parse_args() 
 
     # args.tr_x_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/ASVspoof2017_V2_wav/train'
@@ -446,7 +448,6 @@ if __name__ == '__main__':
 
     # args.eval_x_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/ASVspoof2017_V2_wav/eval'
     # args.eval_y_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/cqcc_data/eval.trl.txt'
-
 
     # data_paths = LoadDataset(
     #     tr_x=[args.tr_x_p, args.dev_x_p], tr_y=[args.tr_y_p, args.dev_y_p], 
@@ -467,16 +468,16 @@ if __name__ == '__main__':
     # args.eval_x_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/cqcc_data/eval'
     # args.eval_y_p = '/home/audiolab/cagil_asv_journal/asv_spoof_2017_data/cqcc_data/eval.trl.txt'
 
-    data_root = '/home/cagil/Documents/cagil_suslu/Speech_Project/Automated-Speech-Verification_pytorch/cqcc_npy_norm/'
+    data_root = '/home/cagil/Documents/cagil_suslu/Speech_Project/Automated-Speech-Verification_pytorch/dynamic_padding_version/cqcc_npy_norm/'
 
-    args.tr_x_p = data_root + '/train'
-    args.tr_y_p = data_root + '/train.trn.txt'
+    args.tr_x_p = data_root + '/train_dev'
+    args.tr_y_p = data_root + '/train_dev.trn.txt'
 
     args.dev_x_p = data_root + '/dev'
     args.dev_y_p = data_root + '/dev.trl.txt'
 
-    args.eval_x_p = data_root + '/dev'
-    args.eval_y_p = data_root + '/dev.trl.txt'
+    args.eval_x_p = data_root + '/eval'
+    args.eval_y_p = data_root + '/eval.trl.txt'
 
     batch_size = args.bs
     bin_size = 1  
@@ -497,7 +498,7 @@ if __name__ == '__main__':
     tr_dataloader = DataLoader(tr_dataset, batch_size=batch_size, shuffle=False, 
                         sampler=sampler_tr, collate_fn=asvdataset_collate_fn_pad, 
                         num_workers=n_worker, pin_memory=True)
-    # val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, 
+    #val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, 
     #                     sampler=sampler_val, collate_fn=asvdataset_collate_fn_pad, 
     #                     num_workers=n_worker, pin_memory=True)
     eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False, 

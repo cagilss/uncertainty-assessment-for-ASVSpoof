@@ -11,7 +11,7 @@ class LinearARD(nn.Module):
     Dense layer implementation with weights ARD-prior (arxiv:1701.05369)
     """
 
-    def __init__(self, in_features, out_features, bias=True, thresh=3, ard_init=-10):
+    def __init__(self, in_features, out_features, bias=False, thresh=3, ard_init=-10):
         super(LinearARD, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -62,7 +62,7 @@ class LinearARD(nn.Module):
         C = -k1
         mdkl = k1 * torch.sigmoid(k2 + k3 * self.log_alpha) - \
             0.5 * torch.log1p(torch.exp(-self.log_alpha)) + C
-        return -torch.sum(mdkl)
+        return -torch.mean(mdkl) * 0.50
 
     def extra_repr(self):
         return 'in_features={}, out_features={}, bias={}'.format(
@@ -140,7 +140,7 @@ class Conv2dARD(nn.Conv2d):
         log_alpha = self.log_alpha
         mdkl = k1 * torch.sigmoid(k2 + k3 * log_alpha) - \
             0.5 * torch.log1p(torch.exp(-log_alpha)) + C
-        return -torch.mean(mdkl) # sum()
+        return -torch.mean(mdkl) * 0.50 # sum() # 0.60 best eer score
  
     def extra_repr(self):
         return 'in_features={}, out_features={}, bias={}'.format(

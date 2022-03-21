@@ -43,16 +43,13 @@ class Evaluation_EER:
                 EER_list.append(bm.eer_rocch(neg, pos))
             except RuntimeError:
                 pass
-        return np.mean(EER_list)
-
-    
+        return np.mean(EER_list)    
 
     def miss_classified_samples(self, logits, labels):
         pred = np.argmax(logits, axis=1)
         miss_idx = np.where(pred != labels)
         miss_cls = logits[miss_idx]
         return miss_cls
-
 
     def true_classified_samples(self, logits, labels):
         pred = np.argmax(logits, axis=1)
@@ -90,7 +87,7 @@ class Evaluation_EER:
         #folder = 'scores_lcnn_dynamic_pad/scores_tr_dev_norm_edl' # 43
 
         #folder = 'scores_lcnn_dynamic_pad/lcnn_edl_and_cr_en_softmax_and_probs/scores_cr_en' # 47
-        folder = 'scores_0776eer_103' # 43
+        folder = 'scores' # 43
 
         # ResNet model scores 
         #folder = 'S8_ce_resnet_1101_60'
@@ -510,11 +507,11 @@ if __name__ == '__main__':
     #compute_scores.eer() 
     # compute_scores.cumulative_distribution_function()
     #compute_scores.plot_roc_for_all()
-    compute_scores.find_best_eer2(epoch=20)
+    compute_scores.find_best_eer2(epoch=81)
 
     #compute_scores.plot_roc_curve()
     #compute_scores.plot_pdfs()
-     #compute_scores.plot_cdfs()
+    #compute_scores.plot_cdfs()
 
     #compute_scores.probability_distribution_function_for_all()
     #compute_scores.compute_roc_curve()

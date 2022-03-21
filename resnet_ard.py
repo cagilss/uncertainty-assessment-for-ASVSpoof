@@ -1,11 +1,14 @@
 import torch
 from torch import nn 
 import torch.nn.functional as F
+import torch_ard as nn_ard
 
 class LightResNet(nn.Module):
     def __init__(self):
         super(LightResNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 8, kernel_size=3, stride=1, padding=1)
+        #self.conv1 = nn.Conv2d(1, 8, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn_ard.Conv2dARD(1, 8, kernel_size=3, stride=1, padding=1)
+
         self.block1 = ResNetBlock(8, 16,  True)
         self.mp = nn.MaxPool2d(2, stride=3, padding=1)
         self.mp_stride_1 = nn.MaxPool2d(2, stride=1, padding=1)
@@ -100,24 +103,30 @@ class LightResNet(nn.Module):
 
     def init_weight(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn_ard.Conv2dARD):
                 nn.init.xavier_normal(m.weight.data)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
+                #m.bias.data.zero_()
+            elif isinstance(m, nn_ard.LinearARD):
                 nn.init.xavier_normal(m.weight.data)
-                m.bias.data.zero_()
+                #m.bias.data.zero_()
 
 
 class ResNetBlock(nn.Module):
     def __init__(self, in_depth, depth, first=False):
         super(ResNetBlock, self).__init__()
         #self.first = first
-        self.conv1 = nn.Conv2d(in_depth, depth, kernel_size=3, stride=1, padding=1)
+        #self.conv1 = nn.Conv2d(in_depth, depth, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn_ard.Conv2dARD(in_depth, depth, kernel_size=3, stride=1, padding=1)
+
         self.bn1 = nn.BatchNorm2d(depth)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.3)
-        self.conv2 = nn.Conv2d(depth, depth, kernel_size=3, stride=3, padding=1)
-        self.conv11 = nn.Conv2d(in_depth, depth, kernel_size=3, stride=3, padding=1)
+
+        #self.conv2 = nn.Conv2d(depth, depth, kernel_size=3, stride=3, padding=1)
+        self.conv2 = nn_ard.Conv2dARD(depth, depth, kernel_size=3, stride=3, padding=1)
+
+        #self.conv11 = nn.Conv2d(in_depth, depth, kernel_size=3, stride=3, padding=1)
+        self.conv11 = nn_ard.Conv2dARD(in_depth, depth, kernel_size=3, stride=3, padding=1)
 
         self.pre_bn = nn.BatchNorm2d(depth)
 
